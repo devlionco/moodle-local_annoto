@@ -1,4 +1,4 @@
-(function () {
+(function() {
     /*
      * Kaltura Embed, works by first loading Kaltura script. The scripts set a global kWidget object.
      * If Annoto plugin is run before, the Kaltura script is loaded, then kWidget would not be available.
@@ -7,58 +7,46 @@
 
     window.moodleAnnoto = window.moodleAnnoto || {};
 
-    var annotoDebugLog = function() {};
-    try {
-        if (window.sessionStorage.getItem('moodleAnnotoDebugKaltura')) {
-            annotoDebugLog = function(msg, arg) {
-                console.info('AnnotoMoodle | Kaltura: ' + msg, arg || '');
-            }
-        }
-    } catch(err) {}
-
+    /** annotoKalturaHookSetup */
     function annotoKalturaHookSetup() {
-        annotoDebugLog('annotoKalturaHookSetup');
         if (!window.kWidget) {
             return false;
         }
 
-        annotoDebugLog('annotoKalturaHookSetup init done');
         var maKApp = {
             kdpMap: {},
 
-            kWidgetReady: function (player_id) {
-                if (!this.kdpMap[player_id]) {
-                    annotoDebugLog('kWidgetReady: ', player_id);
-                    var p = document.getElementById(player_id);
-                    this.kdpMap[player_id] = {
-                        id: player_id,
+            kWidgetReady: function(playerId) {
+                if (!this.kdpMap[playerId]) {
+                    var p = document.getElementById(playerId);
+                    this.kdpMap[playerId] = {
+                        id: playerId,
                         player: p
                     };
-                    p.kBind('annotoPluginSetup', function (params) {
-                        maKApp.annotoPluginSetup(player_id, params);
+                    p.kBind('annotoPluginSetup', function(params) {
+                        maKApp.annotoPluginSetup(playerId, params);
                     });
                 }
             },
 
-            annotoPluginSetup: function (id, params) {
-                annotoDebugLog('annotoPluginSetup: ', id);
+            annotoPluginSetup: function(id, params) {
                 var kdpMap = this.kdpMap;
                 var kdp = kdpMap[id];
                 kdp.config = params.config;
 
-                params.await = function (doneCb) {
+                params.await = function(doneCb) {
                     kdp.doneCb = doneCb;
                 };
 
-                setTimeout(function() {
+                setTimeout(function () {
                     if (window.moodleAnnoto.setupKalturaKdpMap) {
                         window.moodleAnnoto.setupKalturaKdpMap(kdpMap);
                     }
                 });
             },
-        }
+        };
 
-        kWidget.addReadyCallback(function (playerId) {
+        window.kWidget.addReadyCallback(function(playerId) {
             maKApp.kWidgetReady(playerId);
         });
         window.moodleAnnoto.kApp = maKApp;
@@ -66,6 +54,8 @@
     }
 
     var setupRetry = 0;
+
+    /** annotoKalturaHookSetupPoll */
     function annotoKalturaHookSetupPoll() {
         if (!window.moodleAnnoto.kApp && setupRetry < 50 && !annotoKalturaHookSetup()) {
             setupRetry++;

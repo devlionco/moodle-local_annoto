@@ -34,7 +34,9 @@ define([
         if (window.sessionStorage.getItem('moodleAnnotoDebug')) {
             log = console;
         }
-    } catch (err) {}
+    } catch (err) {
+        // empty
+    }
 
     return {
         init: function(courseid, pageurl, modid) {
@@ -118,11 +120,11 @@ define([
             } else if (vimeo) {
                 annotoPlayer = vimeo;
                 this.params.playerType = 'vimeo';
-            }else if (wistia) {
+            } else if (wistia) {
                 annotoPlayer = wistia;
                 this.params.playerType = 'wistia';
-            }else {
-                return;
+            } else {
+                return false;
             }
             if (!annotoPlayer.id || annotoPlayer.id === '') {
                 annotoPlayer.id = this.params.defaultPlayerId;
@@ -135,7 +137,7 @@ define([
                 return;
             }
 
-            var annotoPlayer = this.findPlayer.call(this);
+            var annotoPlayer = this.findPlayer();
 
             if (annotoPlayer) {
                 this.params.playerId = annotoPlayer.id;
@@ -207,7 +209,7 @@ define([
 
             this.config = config;
 
-            this.prepareConfig.call(this);
+            this.prepareConfig();
 
             if (window.Annoto) {
                 window.Annoto.on('ready', this.annotoReady.bind(this));
@@ -395,7 +397,7 @@ define([
                     self.prepareConfig();
                 }
 
-                self.annotoAPI.close().then(function(){
+                self.annotoAPI.close().then(function() {
                     if (playerNode.offsetParent) {
                         self.annotoAPI.load(self.config, function(err) {
                             if (err) {
@@ -405,6 +407,7 @@ define([
                             log.info('AnnotoMoodle: Loaded new Configuration!');
                         });
                     }
+                    return null;
                 });
               };
 
@@ -425,7 +428,7 @@ define([
 
         },
 
-        setupWistiaIframeEmbed: function(){
+        setupWistiaIframeEmbed: function() {
             var annotoIframeClient = "https://cdn.annoto.net/widget-iframe-api/latest/client.js",
                 annotoIframeUrl = /https:\/\/fast.wistia.net\/embed\/iframe.*https:\/\/cdn.annoto.net/,
                 wistiaplayers = document.querySelectorAll('iframe');
@@ -439,11 +442,11 @@ define([
             });
         },
 
-        setupWistiaIframeEmbedPlugin: function(iframe, AnnotoIframeApi){
+        setupWistiaIframeEmbedPlugin: function(iframe, AnnotoIframeApi) {
             var params = this.params,
                 annoto = new AnnotoIframeApi.Client(iframe);
 
-            annoto.onSetup(function (next) {
+            annoto.onSetup(function(next) {
                 next({
                     clientId: params.clientId,
                     position: params.position,
@@ -480,15 +483,15 @@ define([
                 });
             });
 
-            annoto.onReady(function (api) {
+            annoto.onReady(function(api) {
                 // recomended, so notifications will have URL to valid pages
                 api.registerOriginProvider({
-                    getPageUrl: function () {
+                    getPageUrl: function() {
                         return location.href;
                     },
                 });
                 var token = params.userToken;
-                api.auth(token, function (err) {
+                api.auth(token, function(err) {
                     if (err) {
                         log.error('AnnotoMoodle: SSO auth error', err);
                     }

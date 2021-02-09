@@ -28,9 +28,9 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * Class for working with JWTs.
-  * @package    local_annoto
-  * @copyright (c) 2011, Neuman Vong
-  * @license  http://opensource.org/licenses/BSD-3-Clause 3-clause BSD
+ * @package    local_annoto
+ * @copyright (c) 2011, Neuman Vong
+ * @license  http://opensource.org/licenses/BSD-3-Clause 3-clause BSD
  */
 class JWT
 {
